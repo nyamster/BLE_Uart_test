@@ -159,7 +159,7 @@ fn write_sin() {
 }
 
 fn main() {
-    let mut sin = [20i32; 5];
+    let mut sin = [0i32; 20];
     
     let mut port = serialport::new("/dev/ttyUSB0", 115_200)
         .flow_control(FlowControl::None)
@@ -186,8 +186,8 @@ fn main() {
     // let res = write_command(&mut port, "AT+RESTORE\r\n");
     // println!("Answer: {}", res.unwrap());
     
-    let res = write_command(&mut port, "AT+TPMODE=0\r\n");
-    println!("Answer: {}", res.unwrap());
+    // let res = write_command(&mut port, "AT+TPMODE=0\r\n");
+    // println!("Answer: {}", res.unwrap());
     // let res = write_command(&mut port, "AT+LPM=1\r\n");
     // println!("Answer: {}", res.unwrap());
     // let res = write_command(&mut port, "AT+PIOCFG=1,1\r\n");
@@ -201,6 +201,7 @@ fn main() {
             Ok(n) => {
                 let ans = std::str::from_utf8(&mut input[..n]);
                 if let Ok(ans) = ans {
+                    println!("{}", ans.to_string());
                     if ans.to_string() == "+GATTDATA=5,AdcOn\r\n" {
                         println!("{}", ans.to_string());
                         break;
@@ -212,10 +213,10 @@ fn main() {
         }
     }
 
-    for i in 0..5 {
-        sin[i%5] = ((i as f64 / 50.0).sin() * 100.0) as i32;
+    for i in 0..20 {
+        sin[i%20] = ((i as f64 / 50.0).sin() * 100.0) as i32;
 
-        if i % 5 == 4 {
+        if i % 20 == 19 {
             // let mut vec: Vec<u8> = Vec::new();
             // vec.extend_from_slice("AT+LESEND=20,".as_bytes());
             // let v_bytes: &[u8] = unsafe {
@@ -228,7 +229,7 @@ fn main() {
             // vec.extend_from_slice("\r\n".as_bytes());
             let mut buf = String::new();
             let mut msg = String::new();
-            let _ = write!(&mut msg, "{:?}", &sin[0..5]);
+            let _ = write!(&mut msg, "{:?}", &sin[0..20]);
             let _ = write!(&mut buf, "AT+LESEND={},{}\r\n", msg.len(), msg);
             println!("MESSAGE: {:?}", buf);
             let res = write_command(&mut port, &buf);
