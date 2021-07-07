@@ -159,7 +159,7 @@ fn write_sin() {
 }
 
 fn main() {
-    let mut sin = [0i32; 20];
+    
     
     let mut port = serialport::new("/dev/ttyUSB0", 115_200)
         .flow_control(FlowControl::None)
@@ -168,7 +168,7 @@ fn main() {
         .open()
         .expect("Failed to open port");
 
-    let mut input  = [0u8; 80];
+    // let mut input  = [0u8; 80];
     // loop {
     //     match port.read(&mut input) {
     //         Ok(n) => {
@@ -186,8 +186,8 @@ fn main() {
     // let res = write_command(&mut port, "AT+RESTORE\r\n");
     // println!("Answer: {}", res.unwrap());
     
-    // let res = write_command(&mut port, "AT+TPMODE=0\r\n");
-    // println!("Answer: {}", res.unwrap());
+    let res = write_command(&mut port, "AT+TPMODE=0\r\n");
+    println!("Answer: {:?}", res.unwrap());
     // let res = write_command(&mut port, "AT+LPM=1\r\n");
     // println!("Answer: {}", res.unwrap());
     // let res = write_command(&mut port, "AT+PIOCFG=1,1\r\n");
@@ -196,27 +196,29 @@ fn main() {
     // let res = write_command(&mut port, "AT+LESEND=30,012345678901234567890123456789\r\n");
     // println!("Answer: {}", res.unwrap());
 
-    loop {
-        match port.read(&mut input) {
-            Ok(n) => {
-                let ans = std::str::from_utf8(&mut input[..n]);
-                if let Ok(ans) = ans {
-                    println!("{}", ans.to_string());
-                    if ans.to_string() == "+GATTDATA=5,AdcOn\r\n" {
-                        println!("{}", ans.to_string());
-                        break;
-                    }
-                }
-            }
-            Err(ref e) if e.kind() == io::ErrorKind::TimedOut => (),
-            Err(e) => {eprintln!("{:?}", e)},
-        }
-    }
+    // loop {
+    //     match port.read(&mut input) {
+    //         Ok(n) => {
+    //             let ans = std::str::from_utf8(&mut input[..n]);
+    //             if let Ok(ans) = ans {
+    //                 println!("{}", ans.to_string());
+    //                 if ans.to_string() == "+GATTDATA=5,AdcOn\r\n" {
+    //                     println!("{}", ans.to_string());
+    //                     break;
+    //                 }
+    //             }
+    //         }
+    //         Err(ref e) if e.kind() == io::ErrorKind::TimedOut => (),
+    //         Err(e) => {eprintln!("{:?}", e)},
+    //     }
+    // }
 
-    for i in 0..20 {
-        sin[i%20] = ((i as f64 / 50.0).sin() * 100.0) as i32;
+    let mut sin = [0i32; 25];
+    let mut error_cnt = 0;
+    for i in 0..500000 {
+        sin[i%25] = ((i as f64 / 50.0).sin() * 1000.0) as i32;
 
-        if i % 20 == 19 {
+        if i % 25 == 24 {
             // let mut vec: Vec<u8> = Vec::new();
             // vec.extend_from_slice("AT+LESEND=20,".as_bytes());
             // let v_bytes: &[u8] = unsafe {
@@ -229,15 +231,26 @@ fn main() {
             // vec.extend_from_slice("\r\n".as_bytes());
             let mut buf = String::new();
             let mut msg = String::new();
-            let _ = write!(&mut msg, "{:?}", &sin[0..20]);
+            let _ = write!(&mut msg, "{:?}", &sin[0..25]);
             let _ = write!(&mut buf, "AT+LESEND={},{}\r\n", msg.len(), msg);
-            println!("MESSAGE: {:?}", buf);
+            //println!("MESSAGE: {:?}", buf);
+            //let _ = port.write(&buf.as_bytes()).expect("Write failed!");
             let res = write_command(&mut port, &buf);
+            // if res.unwrap() == "\r\nERROR\r\n" {
+            //     error_cnt += 1;
+            //     if error_cnt >= 5 {
+            //         println!("Disconnecting from device");
+            //         break;
+            //     }
+            // }
+            println!("Answer: {:?}", res.unwrap());
+
             //let res = write_byte_command(&mut port, &vec);
-            // // if res.unwrap() == "AdcOff" {
-            // //     break;
-            // // }
-            println!("Answer: {}", res.unwrap());
+            // if res.unwrap() == "Error" {
+            //     println!("ERROR");
+            //     break;
+            // }
+            thread::sleep(Duration::from_millis(100));
         }
     }
     loop{}
