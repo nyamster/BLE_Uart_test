@@ -256,7 +256,7 @@ fn main() {
     loop{}
 
 
-    let peripheral = bluetooth_connect().unwrap();
+    // let peripheral = bluetooth_connect().unwrap();
     let mut t1 = Instant::now();
     let mut cnt = 0;
     let mut i = 0;
