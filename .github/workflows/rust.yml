@@ -21,7 +21,5 @@ jobs:
       run: cargo build --verbose
     - name: Check fmt
       run: cargo fmt
-    - name: Check clippy
-      run: cargo clippy
     - name: Run tests
       run: cargo test --verbose
